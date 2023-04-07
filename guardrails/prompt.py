@@ -1,4 +1,5 @@
 import re
+from string import Formatter
 from typing import Optional
 
 from guardrails.utils.constants import constants
@@ -9,7 +10,9 @@ class Prompt:
         output_schema = output_schema or {}
 
         # Get variable names in the source string (surronded by 2 curly braces)
-        self.variable_names = re.findall(r"{{(.*?)}}", source)
+        self.variable_names = [
+            x[1] for x in Formatter().parse(source) if x[1] is not None
+        ]
 
         format_instructions_start_idx = self.get_format_instructions_idx(source)
 
@@ -18,7 +21,13 @@ class Prompt:
         # Format instructions contain info for how to format LLM output.
         self.format_instructions = source[format_instructions_start_idx:]
 
-        self.source = source.format(output_schema=output_schema)
+        if output_schema:
+            self.source = source.format(output_schema=output_schema)
+        else:
+            self.source = source
+
+    def __eq__(self, __value: object) -> bool:
+        return isinstance(__value, Prompt) and self.source == __value.source
 
     def __repr__(self) -> str:
         # Truncate the prompt to 50 characters and add ellipsis if it's longer.
@@ -47,7 +56,10 @@ class Prompt:
 
     def format(self, **kwargs):
         """Format the prompt using the given keyword arguments."""
-        return self.source.format(**kwargs)
+        # Only use the keyword arguments that are present in the prompt.
+        vars = [x[1] for x in Formatter().parse(self.source) if x[1] is not None]
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in vars}
+        return Prompt(self.source.format(**filtered_kwargs))
 
     def make_vars_optional(self):
         """Make all variables in the prompt optional."""

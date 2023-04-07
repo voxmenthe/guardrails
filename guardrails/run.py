@@ -44,6 +44,7 @@ class Runner:
     output_schema: OutputSchema
     num_reasks: int = 0
     output: str = None
+    reask_prompt: Optional[Prompt] = None
     guard_history: GuardHistory = field(default_factory=lambda: GuardHistory([]))
 
     def _reset_guard_history(self):
@@ -98,9 +99,10 @@ class Runner:
                     break
                 # Get new prompt and output schema.
                 prompt, output_schema = self.prepare_to_loop(
-                    reasks, validated_output, output_schema
+                    reasks,
+                    validated_output,
+                    output_schema,
                 )
-                prompt_params = {}
 
             return self.guard_history
 
@@ -153,7 +155,7 @@ class Runner:
         prompt: Prompt,
         prompt_params: Dict,
         input_schema: InputSchema,
-    ) -> str:
+    ) -> Prompt:
         """Prepare by running pre-processing and input validation."""
         with start_action(action_type="prepare", index=index) as action:
             if prompt_params is None:
@@ -164,8 +166,12 @@ class Runner:
             else:
                 validated_prompt_params = prompt_params
 
-            if isinstance(prompt, Prompt):
-                prompt = prompt.format(**validated_prompt_params)
+            if isinstance(prompt, str):
+                prompt = Prompt(prompt)
+
+            # variables = re.findall(r"(?<!\{)\{([^{}]+)\}(?!\})", prompt.source)
+            # if len(variables):
+            prompt = prompt.format(**validated_prompt_params)
 
             action.log(
                 message_type="info",
@@ -179,7 +185,7 @@ class Runner:
     def call(
         self,
         index: int,
-        prompt: str,
+        prompt: Prompt,
         api: Callable,
         output: str = None,
     ) -> Tuple[str, Optional[Dict]]:
@@ -191,7 +197,7 @@ class Runner:
         """
         with start_action(action_type="call", index=index, prompt=prompt) as action:
             if prompt:
-                output = api(prompt)
+                output = api(prompt.source)
 
             error = None
             # Treat the output as a JSON string, and load it into a dict.
@@ -277,5 +283,6 @@ class Runner:
             parsed_rail=output_schema.root,
             reasks=reasks,
             reask_json=prune_json_for_reasking(validated_output),
+            reask_prompt_template=self.reask_prompt,
         )
         return prompt, OutputSchema(output_schema)

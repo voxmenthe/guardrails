@@ -23,6 +23,10 @@ class SQLDriver(ABC):
     def validate_sql(self, query: str) -> List[str]:
         ...
 
+    @abstractmethod
+    def get_schema(self) -> str:
+        ...
+
 
 class SimpleSqlDriver(SQLDriver):
     """
@@ -37,6 +41,9 @@ class SimpleSqlDriver(SQLDriver):
         if not sql_query.is_valid():
             return sql_query.errors
         return sql_query.errors
+
+    def get_schema(self) -> str:
+        raise NotImplementedError
 
 
 class SqlAlchemyDriver(SQLDriver):
@@ -84,8 +91,14 @@ class SqlAlchemyDriver(SQLDriver):
             exceptions.append(str(ex))
         return exceptions
 
+    def get_schema(self) -> str:
+        schema = self._conn.execute("SELECT * FROM sqlite_master").fetchall()
+        return schema
 
-def create_sql_driver(schema_file: Optional[str], conn: Optional[str]) -> SQLDriver:
+
+def create_sql_driver(
+    schema_file: Optional[str] = None, conn: Optional[str] = None
+) -> SQLDriver:
     if schema_file is None and conn is None:
         return SimpleSqlDriver()
     return SqlAlchemyDriver(schema_file=schema_file, conn=conn)

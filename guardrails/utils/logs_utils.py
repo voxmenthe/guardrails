@@ -7,12 +7,13 @@ from rich.panel import Panel
 from rich.pretty import pretty_repr
 from rich.tree import Tree
 
+from guardrails.prompt import Prompt
 from guardrails.utils.reask_utils import ReAsk, gather_reasks, prune_json_for_reasking
 
 
 @dataclass
 class GuardLogs:
-    prompt: str
+    prompt: Prompt
     output: str
     output_as_dict: dict
     validated_output: dict
@@ -27,7 +28,7 @@ class GuardLogs:
     def rich_group(self) -> Group:
         return Group(
             Panel(
-                self.prompt,
+                self.prompt.source if self.prompt is not None else "No prompt",
                 title="Prompt",
                 style="on #F0F8FF",
             ),

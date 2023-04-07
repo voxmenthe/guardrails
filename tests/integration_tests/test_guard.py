@@ -103,14 +103,14 @@ def test_entity_extraction_with_reask(mocker):
     assert len(guard_history) == 2
 
     # For orginal prompt and output
-    assert guard_history[0].prompt == entity_extraction.COMPILED_PROMPT
+    assert guard_history[0].prompt == gd.Prompt(entity_extraction.COMPILED_PROMPT)
     assert guard_history[0].output == entity_extraction.LLM_OUTPUT
     assert (
         guard_history[0].validated_output == entity_extraction.VALIDATED_OUTPUT_REASK_1
     )
 
     # For re-asked prompt and output
-    assert guard_history[1].prompt == entity_extraction.COMPILED_PROMPT_REASK
+    assert guard_history[1].prompt == gd.Prompt(entity_extraction.COMPILED_PROMPT_REASK)
     assert guard_history[1].output == entity_extraction.LLM_OUTPUT_REASK
     assert (
         guard_history[1].validated_output == entity_extraction.VALIDATED_OUTPUT_REASK_2
@@ -140,7 +140,7 @@ def test_entity_extraction_with_noop(mocker):
     assert len(guard_history) == 1
 
     # For orginal prompt and output
-    assert guard_history[0].prompt == entity_extraction.COMPILED_PROMPT
+    assert guard_history[0].prompt == gd.Prompt(entity_extraction.COMPILED_PROMPT)
     assert guard_history[0].output == entity_extraction.LLM_OUTPUT
     assert guard_history[0].validated_output == entity_extraction.VALIDATED_OUTPUT_NOOP
 
@@ -168,7 +168,7 @@ def test_entity_extraction_with_filter(mocker):
     assert len(guard_history) == 1
 
     # For orginal prompt and output
-    assert guard_history[0].prompt == entity_extraction.COMPILED_PROMPT
+    assert guard_history[0].prompt == gd.Prompt(entity_extraction.COMPILED_PROMPT)
     assert guard_history[0].output == entity_extraction.LLM_OUTPUT
     assert (
         guard_history[0].validated_output == entity_extraction.VALIDATED_OUTPUT_FILTER
@@ -198,7 +198,7 @@ def test_entity_extraction_with_fix(mocker):
     assert len(guard_history) == 1
 
     # For orginal prompt and output
-    assert guard_history[0].prompt == entity_extraction.COMPILED_PROMPT
+    assert guard_history[0].prompt == gd.Prompt(entity_extraction.COMPILED_PROMPT)
     assert guard_history[0].output == entity_extraction.LLM_OUTPUT
     assert guard_history[0].validated_output == entity_extraction.VALIDATED_OUTPUT_FIX
 
@@ -226,7 +226,7 @@ def test_entity_extraction_with_refrain(mocker):
     assert len(guard_history) == 1
 
     # For orginal prompt and output
-    assert guard_history[0].prompt == entity_extraction.COMPILED_PROMPT
+    assert guard_history[0].prompt == gd.Prompt(entity_extraction.COMPILED_PROMPT)
     assert guard_history[0].output == entity_extraction.LLM_OUTPUT
     assert (
         guard_history[0].validated_output == entity_extraction.VALIDATED_OUTPUT_REFRAIN
